@@ -1,0 +1,35 @@
+﻿@page "/detalle-solicitud/{IdSolicitud:int}"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject SolicitudService solicitudService
+
+<h3 class="titulo">Detalle de la Solicitud</h3>
+
+@if (solicitud != null)
+{
+    <div class="detalle-solicitud-creada">
+        <p><strong>ID de Solicitud:</strong> @solicitud.IdSolicitud</p>
+        <p><strong>ID de Opción:</strong> @solicitud.IdOpcion</p>
+        <p><strong>Nombre Cliente:</strong> @solicitud.NombreCreador</p>
+        <p><strong>Descripción:</strong> @solicitud.DescripcionDetallada</p>
+        <p><strong>Prioridad:</strong> @solicitud.Prioridad</p>
+        <p><strong>Estado:</strong> @solicitud.Estado</p>
+        <p><strong>Fecha Creación:</strong> @solicitud.FechaCreacion.ToString("dd/MM/yyyy HH:mm:ss")</p>
+    </div>
+}
+else
+{
+    <p>Solicitud no encontrada.</p>
+}
+
+@code {
+    [Parameter]
+    public int IdSolicitud { get; set; }
+    private Solicitud solicitud;
+
+    protected override async Task OnInitializedAsync()
+    {
+        solicitud = await solicitudService.ObtenerSolicitudPorId(IdSolicitud);
+    }
+}
+

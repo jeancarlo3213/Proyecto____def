@@ -51,28 +51,61 @@ namespace Proyecto____def.Servicios
             }
         }
 
-        // Método para agregar una solicitud a la base de datos
-        public async Task AgregarSolicitudAsync(Solicitud solicitud)
+        public async Task<Solicitud> ObtenerSolicitudPorId(int idSolicitud)
+        {
+            Solicitud solicitud = null;
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("SELECT IdSolicitud, IdCliente, IdOpcion, DescripcionProblema, Estado, FechaCreacion, FechaUltimaActualizacion, NombreCreador, DescripcionDetallada, Prioridad FROM Solicitudes WHERE IdSolicitud = @IdSolicitud", connection);
+                cmd.Parameters.AddWithValue("@IdSolicitud", idSolicitud);
+
+                connection.Open();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    if (reader.Read())
+                    {
+                        solicitud = new Solicitud
+                        {
+                            IdSolicitud = reader.GetInt32(reader.GetOrdinal("IdSolicitud")),
+                            IdCliente = reader.GetInt32(reader.GetOrdinal("IdCliente")),
+                            IdOpcion = reader.GetInt32(reader.GetOrdinal("IdOpcion")),
+                            DescripcionProblema = reader.GetString(reader.GetOrdinal("DescripcionProblema")),
+                            Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                            FechaCreacion = reader.GetDateTime(reader.GetOrdinal("FechaCreacion")),
+                            FechaUltimaActualizacion = reader.GetDateTime(reader.GetOrdinal("FechaUltimaActualizacion")),
+                            NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
+                            DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
+                            Prioridad = reader.GetString(reader.GetOrdinal("Prioridad"))
+                        };
+                    }
+                }
+            }
+
+            return solicitud;
+        }
+
+        public async Task<int> AgregarSolicitudAsync(Solicitud solicitud)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("INSERT INTO Solicitudes (IdCliente, IdOpcion, DescripcionProblema, Estado, IdTecnico, Calificacion, FechaCreacion, FechaUltimaActualizacion, NombreCreador, DescripcionDetallada, Prioridad, FechaResolucion) VALUES (@IdCliente, @IdOpcion, @DescripcionProblema, @Estado, @IdTecnico, @Calificacion, @FechaCreacion, @FechaUltimaActualizacion, @NombreCreador, @DescripcionDetallada, @Prioridad, @FechaResolucion)", connection);
+                var cmd = new SqlCommand("INSERT INTO Solicitudes (IdCliente, IdOpcion, DescripcionProblema, Estado, FechaCreacion, FechaUltimaActualizacion, NombreCreador, DescripcionDetallada, Prioridad) VALUES (@IdCliente, @IdOpcion, @DescripcionProblema, @Estado, @FechaCreacion, @FechaUltimaActualizacion, @NombreCreador, @DescripcionDetallada, @Prioridad); SELECT SCOPE_IDENTITY();", connection);
                 cmd.Parameters.AddWithValue("@IdCliente", solicitud.IdCliente);
                 cmd.Parameters.AddWithValue("@IdOpcion", solicitud.IdOpcion);
                 cmd.Parameters.AddWithValue("@DescripcionProblema", solicitud.DescripcionProblema);
                 cmd.Parameters.AddWithValue("@Estado", solicitud.Estado);
-                cmd.Parameters.AddWithValue("@IdTecnico", solicitud.IdTecnico);
-                cmd.Parameters.AddWithValue("@Calificacion", solicitud.Calificacion);
                 cmd.Parameters.AddWithValue("@FechaCreacion", solicitud.FechaCreacion);
                 cmd.Parameters.AddWithValue("@FechaUltimaActualizacion", solicitud.FechaUltimaActualizacion);
                 cmd.Parameters.AddWithValue("@NombreCreador", solicitud.NombreCreador);
                 cmd.Parameters.AddWithValue("@DescripcionDetallada", solicitud.DescripcionDetallada);
                 cmd.Parameters.AddWithValue("@Prioridad", solicitud.Prioridad);
-                cmd.Parameters.AddWithValue("@FechaResolucion", solicitud.FechaResolucion ?? (object)DBNull.Value);
+
                 connection.Open();
-                await cmd.ExecuteNonQueryAsync();
+                int idSolicitudGenerada = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return idSolicitudGenerada;
             }
         }
+
 
         // Métodos adicionales para manejar el historial de cambios y otras operaciones pueden ser implementados aquí.
     }

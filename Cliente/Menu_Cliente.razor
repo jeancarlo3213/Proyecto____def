@@ -60,13 +60,17 @@
 {
     <div class="detalle-solicitud-creada">
         <h4>Solicitud Creada Exitosamente</h4>
-        <p>ID de Solicitud: @solicitudCreada.IdSolicitud</p>
-        <p>ID de Opción: @solicitudCreada.IdOpcion</p>
-        <p>Descripción: @solicitudCreada.DescripcionDetallada</p>
-        <p>Prioridad: @solicitudCreada.Prioridad</p>
-        <p>Estado: @solicitudCreada.Estado</p>
+        <p><strong>ID de Solicitud:</strong> @solicitudCreada.IdSolicitud</p>
+        <p><strong>ID de Opción:</strong> @solicitudCreada.IdOpcion</p>
+        <p><strong>Nombre Cliente:</strong> @solicitudCreada.NombreCreador</p>
+        <p><strong>Descripción:</strong> @solicitudCreada.DescripcionDetallada</p>
+        <p><strong>Prioridad:</strong> @solicitudCreada.Prioridad</p>
+        <p><strong>Estado:</strong> @solicitudCreada.Estado</p>
+        <p><strong>Fecha Creación:</strong> @solicitudCreada.FechaCreacion.ToString("dd/MM/yyyy HH:mm:ss")</p>
+        <button class="btn btn-verde" @onclick="() => VerDetalleSolicitud(solicitudCreada.IdSolicitud)">Ver Detalles</button>
     </div>
 }
+
 
 <div class="mensaje">
     @if (mensajeConfirmacion != null)
@@ -96,6 +100,10 @@
         {
             opciones = await solicitudService.ObtenerOpcionesAsync();
         }
+    }
+    private void VerDetalleSolicitud(int idSolicitud)
+    {
+        NavigationManager.NavigateTo($"/detalle-solicitud/{idSolicitud}");
     }
 
     private void ToggleFormularioSolicitud()
@@ -132,7 +140,6 @@
             StateHasChanged();
         }
     }
-
     private async Task ConfirmarSolicitud()
     {
         if (opcionSeleccionada != null && !string.IsNullOrWhiteSpace(descripcionDetallada) && !string.IsNullOrWhiteSpace(prioridadSeleccionada))
@@ -151,9 +158,10 @@
                 };
             try
             {
-                await solicitudService.AgregarSolicitudAsync(nuevaSolicitud);
+                int idSolicitudGenerada = await solicitudService.AgregarSolicitudAsync(nuevaSolicitud);
+                nuevaSolicitud.IdSolicitud = idSolicitudGenerada; // Asigna el ID generado
                 solicitudCreada = nuevaSolicitud; // Guarda la solicitud creada para mostrar
-                mensajeConfirmacion = "Solicitud agregada correctamente. ID de Solicitud: " + nuevaSolicitud.IdSolicitud;
+                mensajeConfirmacion = "Solicitud agregada correctamente. ID de Solicitud: " + idSolicitudGenerada;
                 ResetForm();
             }
             catch (Exception ex)
@@ -166,6 +174,7 @@
             mensajeConfirmacion = "Por favor complete todos los campos requeridos para la solicitud.";
         }
     }
+
 
     private void ResetForm()
     {
