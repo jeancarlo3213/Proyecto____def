@@ -1,0 +1,162 @@
+﻿@page "/Cliente/Menu_Cliente/{NombreUsuario}"
+@using Proyecto_def.Servicios
+@using Proyecto____def.Estructura
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject UsuarioService usuarioService
+@inject SolicitudService solicitudService
+@inject NavigationManager NavigationManager
+
+<h3 class="titulo">Menú Cliente</h3>
+
+@if (usuario != null)
+{
+    <div class="bienvenida">Bienvenido, @NombreCompleto</div>
+    <button class="btn toggle-btn" @onclick="ToggleFormularioSolicitud">Generar Solicitud</button>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="seleccion-opciones">
+        <h4>Seleccione una opción</h4>
+        @foreach (Nodo nodo in opciones)
+        {
+            if (nodo.Informacion is Opcion opcion)
+            {
+                <button class="btn opcion-btn" @onclick="() => SeleccionarOpcion(opcion)">@opcion.Descripcion</button>
+            }
+        }
+        <button class="btn agregar-btn" @onclick="MostrarAgregarOpcionFormulario">Agregar Opción</button>
+    </div>
+}
+
+@if (mostrarAgregarOpcion)
+{
+    <div class="agregar-opcion">
+        <h4>Agregar Nueva Opción</h4>
+        <input type="text" @bind="nuevaOpcionDescripcion" placeholder="Ingrese la descripción de la nueva opción" />
+        <button class="btn guardar-btn" @onclick="AgregarOpcion">Guardar Opción</button>
+    </div>
+}
+
+@if (opcionSeleccionada != null)
+{
+    <div class="detalle-solicitud">
+        <h4>Detalle de la solicitud</h4>
+        <p>ID de Opción: @opcionSeleccionada.IdOpcion</p>
+        <p>Descripción de Opción: @opcionSeleccionada.Descripcion</p>
+        <textarea @bind="descripcionDetallada" placeholder="Describa detalladamente su problema"></textarea>
+        <select @bind="prioridadSeleccionada">
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+        </select>
+        <button class="btn confirmar-btn" @onclick="ConfirmarSolicitud">Confirmar Solicitud</button>
+    </div>
+}
+
+<div class="mensaje">
+    @if (mensajeConfirmacion != null)
+    {
+        <p class="mensaje-confirmacion">@mensajeConfirmacion</p>
+    }
+</div>
+@code {
+    [Parameter]
+    public string NombreUsuario { get; set; }
+    private Usuario_Persona usuario;
+    private ListaEnlazadaSimple opciones = new ListaEnlazadaSimple();
+    private bool mostrarFormulario = false;
+    private bool mostrarAgregarOpcion = false;
+    private Opcion opcionSeleccionada;
+    private string nuevaOpcionDescripcion;
+    private string descripcionDetallada;
+    private string prioridadSeleccionada;
+    private string mensajeConfirmacion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuario = await usuarioService.ObtenerUsuarioPorNombreUsuario(NombreUsuario);
+        if (usuario != null)
+        {
+            opciones = await solicitudService.ObtenerOpcionesAsync();
+        }
+    }
+
+    private void ToggleFormularioSolicitud()
+    {
+        mostrarFormulario = !mostrarFormulario;
+        ResetForm();
+    }
+
+    private void SeleccionarOpcion(Opcion opcion)
+    {
+        opcionSeleccionada = opcion;
+        mostrarFormulario = false;
+        mensajeConfirmacion = null;
+        StateHasChanged();
+    }
+
+    private void MostrarAgregarOpcionFormulario()
+    {
+        mostrarAgregarOpcion = !mostrarAgregarOpcion;
+        if (!mostrarAgregarOpcion) ResetForm();
+    }
+
+    private async Task AgregarOpcion()
+    {
+        if (!string.IsNullOrEmpty(nuevaOpcionDescripcion))
+        {
+            Opcion nuevaOpcion = new Opcion { Descripcion = nuevaOpcionDescripcion };
+            await solicitudService.AgregarNuevaOpcionAsync(nuevaOpcion);
+            nuevaOpcionDescripcion = "";
+            mostrarAgregarOpcion = false;
+            opciones = await solicitudService.ObtenerOpcionesAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmarSolicitud()
+    {
+        if (opcionSeleccionada != null && !string.IsNullOrWhiteSpace(descripcionDetallada) && !string.IsNullOrWhiteSpace(prioridadSeleccionada))
+        {
+            Solicitud nuevaSolicitud = new Solicitud
+                {
+                    IdCliente = usuario.Id,
+                    IdOpcion = opcionSeleccionada.IdOpcion,
+                    DescripcionProblema = opcionSeleccionada.Descripcion,
+                    Estado = "En espera",
+                    FechaCreacion = DateTime.Now,
+                    FechaUltimaActualizacion = DateTime.Now,
+                    NombreCreador = NombreCompleto,
+                    DescripcionDetallada = descripcionDetallada,
+                    Prioridad = prioridadSeleccionada,
+                };
+            try
+            {
+                await solicitudService.AgregarSolicitudAsync(nuevaSolicitud);
+                mensajeConfirmacion = "Solicitud agregada correctamente.";
+                ResetForm();
+            }
+            catch (Exception ex)
+            {
+                mensajeConfirmacion = $"Error al agregar solicitud: {ex.Message}";
+            }
+        }
+        else
+        {
+            mensajeConfirmacion = "Por favor complete todos los campos requeridos para la solicitud.";
+        }
+    }
+
+    private void ResetForm()
+    {
+        descripcionDetallada = "";
+        prioridadSeleccionada = null;
+        opcionSeleccionada = null;
+        mensajeConfirmacion = null;
+        StateHasChanged();
+    }
+
+    private string NombreCompleto => usuario != null ? $"{usuario.Nombre} {usuario.Apellido}" : "Usuario Desconocido";
+}

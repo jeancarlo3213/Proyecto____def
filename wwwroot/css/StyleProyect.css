@@ -1,0 +1,197 @@
+﻿body {
+}
+/* StyleProyect.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.header {
+    background: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    text-align: center;
+}
+
+.button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .button:hover {
+        background-color: #218838;
+    }
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+}
+/* StyleProyect.css ubicado en wwwroot/css */
+
+/* Estilos generales para los formularios de inicio de sesión */
+.login-form {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 25px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.input {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.button {
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .button:hover {
+        background-color: #0056b3;
+    }
+
+.titulo {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.bienvenida {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.btn {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+.seleccion-opciones, .agregar-opcion, .detalle-solicitud {
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #f8f9fa;
+}
+
+.mensaje-confirmacion {
+    color: green;
+    text-align: center;
+    font-size: 18px;
+}
+
+.opcion-btn, .agregar-btn, .guardar-btn, .confirmar-btn {
+    background-color: #28a745;
+}
+
+    .opcion-btn:hover, .agregar-btn:hover, .guardar-btn:hover, .confirmar-btn:hover {
+        background-color: #218838;
+    }
+
+.toggle-btn {
+    background-color: #ffc107;
+}
+
+    .toggle-btn:hover {
+        background-color: #e0a800;
+    }
+
+
+
+
+
+.titulo {
+    font-size: 24px;
+    font-weight: bold;
+    color: navy;
+    margin-bottom: 20px;
+}
+
+.bienvenida {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+.mensaje-confirmacion {
+    color: green;
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+.detalle-solicitud, .agregar-opcion, .seleccion-opciones {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+input[type="text"], textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+textarea {
+    height: 100px;
+}

@@ -1,0 +1,48 @@
+﻿@page "/Inicio_sesion_cliente"
+@using Proyecto_def.Servicios
+@inject  UsuarioService usuarioService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<h3>Iniciar Sesión como Cliente</h3>
+
+<div>
+    <label for="usuario">Usuario:</label>
+    <input type="text" id="usuario" @bind="usuario" />
+</div>
+
+<div>
+    <label for="contraseña">Contraseña:</label>
+    <input type="password" id="contraseña" @bind="contraseña" />
+</div>
+
+<button @onclick="IniciarSesion">Iniciar Sesión</button>
+
+@code {
+    private string usuario;
+    private string contraseña;
+
+    private async Task IniciarSesion()
+    {
+        if (!string.IsNullOrWhiteSpace(usuario) && !string.IsNullOrWhiteSpace(contraseña))
+        {
+            bool credencialesValidas = await usuarioService.ValidarCredencialesCliente(usuario, contraseña);
+
+            if (credencialesValidas)
+            {
+                // Redirigir al menú del cliente pasando el nombre de usuario como parte de la URL
+                NavigationManager.NavigateTo($"/Cliente/Menu_Cliente/{usuario}");
+            }
+            else
+            {
+                // Mostrar mensaje de error de credenciales inválidas
+                await JSRuntime.InvokeVoidAsync("alert", "Credenciales inválidas. Por favor, inténtelo de nuevo.");
+            }
+        }
+        else
+        {
+            // Mostrar mensaje de error si algún campo está vacío
+            await JSRuntime.InvokeVoidAsync("alert", "Por favor, complete todos los campos.");
+        }
+    }
+}
