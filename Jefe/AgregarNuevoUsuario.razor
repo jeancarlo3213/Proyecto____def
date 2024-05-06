@@ -1,0 +1,51 @@
+﻿@page "/Jefe/AgregarNuevoUsuario"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject UsuarioService usuarioService
+
+<h3>Agregar Nuevo Usuario</h3>
+<EditForm Model="@newUser" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="nombre" @bind-Value="newUser.Nombre" placeholder="Nombre" class="form-control" />
+    <InputText id="apellido" @bind-Value="newUser.Apellido" placeholder="Apellido" class="form-control" />
+    <InputText id="usuarioNombre" @bind-Value="newUser.UsuarioNombre" placeholder="Nombre de Usuario" class="form-control" />
+    <InputText id="contraseña" @bind-Value="newUser.Contraseña" placeholder="Contraseña" type="password" class="form-control" />
+    <InputText id="email" @bind-Value="newUser.Email" placeholder="Email" class="form-control" />
+    <InputText id="dpi" @bind-Value="newUser.DPI" placeholder="DPI" class="form-control" />
+    <InputNumber id="numeroOficina" @bind-Value="newUser.NumeroOficina" placeholder="Número de Oficina" class="form-control" />
+
+    <select @bind="newUser.Puesto" class="form-select">
+        <option value="">Seleccione el Puesto</option>
+        <option value="Tecnico">Técnico</option>
+        <option value="Jefe">Jefe</option>
+        <option value="Cliente">Cliente</option>
+    </select>
+
+    <button type="submit" class="btn btn-success">Agregar Usuario</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert alert-info">@mensaje</div>
+}
+
+@code {
+    private Usuario_Persona newUser = new Usuario_Persona();
+    private string mensaje;
+
+    private async Task HandleValidSubmit()
+    {
+        var result = await usuarioService.AgregarUsuarioConValidacion(newUser);
+        if (result)
+        {
+            mensaje = $"Usuario agregado correctamente: {newUser.Nombre} {newUser.Apellido} - {newUser.Puesto}";
+            newUser = new Usuario_Persona(); // Reset the form
+        }
+        else
+        {
+            mensaje = "No se pudo agregar el usuario. Ya existe un usuario con el mismo DPI y puesto, o faltan datos.";
+        }
+    }
+}

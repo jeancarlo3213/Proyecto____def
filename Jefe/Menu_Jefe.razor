@@ -1,0 +1,139 @@
+﻿@page "/Jefe/Menu_Jefe/{NombreUsuario}"
+@using Proyecto____def.Servicios
+@using Proyecto____def.Estructura
+@using Proyecto____def.Clases_Objetos
+@inject IJSRuntime JS
+@inject UsuarioService usuarioService
+@inject SolicitudService solicitudService
+@inject NavigationManager NavigationManager
+
+<h3>Bienvenido, @NombreCompleto</h3>
+
+@if (Usuario != null)
+{
+    <div class="perfil-container">
+        <div class="perfil-info">
+            <p><strong>Nombre:</strong> @Usuario.Nombre</p>
+            <p><strong>Apellido:</strong> @Usuario.Apellido</p>
+            <p><strong>Email:</strong> @Usuario.Email</p>
+        </div>
+        <div class="perfil-buttons">
+            <button class="btn btn-info" @onclick="ToggleSolicitudesEnEspera">
+                @if (mostrarSolicitudes)
+                {
+                    <text>Ocultar Solicitudes en Espera</text>
+                }
+                else
+                {
+                    <text>Ver Solicitudes en Espera</text>
+                }
+            </button>
+            <button class="btn btn-primary" @onclick="() => NavigateToAddUser()">Agregar Usuario</button>
+            <button class="btn btn-secondary" @onclick="() => NavigateToSearchUser()">Buscar Usuarios</button>
+        </div>
+
+        @code {
+        private void NavigateToAddUser()
+        {
+            NavigationManager.NavigateTo("/Jefe/AgregarNuevoUsuario");
+        }
+
+        private void NavigateToSearchUser()
+        {
+            NavigationManager.NavigateTo("/Jefe/BuscarUsuario");
+        }
+    }
+
+        @if (mostrarSolicitudes && SolicitudesEnEspera != null && !SolicitudesEnEspera.ListaVacia())
+        {
+            <table class="table alternating-colors">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID Solicitud</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Nodo nodo in SolicitudesEnEspera)
+                    {
+                        Solicitud solicitud = nodo.Informacion as Solicitud;
+                        <tr>
+                            <td>@solicitud.IdSolicitud</td>
+                            <td>@solicitud.DescripcionProblema</td>
+                            <td>@solicitud.Estado</td>
+                            <td>
+                                <button class="btn btn-success" @onclick="() => MostrarModalAsignarTecnico(solicitud)">Asignar Técnico</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        @if (mostrarModal)
+        {
+            <TecnicoModal Tecnicos="@Tecnicos" IsOpen="@mostrarModal" OnTecnicoSelected="HandleTecnicoSelected" />
+        }
+        @if (showAddUserModal)
+        {
+            <AddUserModal IsOpen="@showAddUserModal" OnClose="() => showAddUserModal = false" />
+        }
+        @if (showSearchModal)
+        {
+            <SearchUserModal IsOpen="@showSearchModal" OnClose="() => showSearchModal = false" />
+        }
+    </div>
+}
+else
+{
+    <p>No se pudo cargar la información del usuario.</p>
+}
+
+@code {
+    private Usuario_Persona Usuario;
+    private ListaEnlazadaSimple SolicitudesEnEspera, Tecnicos;
+    private bool mostrarModal = false;
+    private bool showAddUserModal = false;
+    private bool showSearchModal = false;
+    private bool mostrarSolicitudes = false;
+    private Solicitud solicitudSeleccionada;
+    [Parameter]
+    public string NombreUsuario { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Usuario = await usuarioService.ObtenerUsuarioPorNombreUsuario(NombreUsuario);
+        if (Usuario != null)
+        {
+            Tecnicos = await usuarioService.ObtenerTecnicos();
+        }
+    }
+
+    private async Task ToggleSolicitudesEnEspera()
+    {
+        mostrarSolicitudes = !mostrarSolicitudes;
+        if (mostrarSolicitudes)
+        {
+            SolicitudesEnEspera = await solicitudService.ObtenerSolicitudesPorEstado("En espera");
+        }
+        mostrarModal = false; // Esconde cualquier modal abierto
+    }
+
+    private void MostrarModalAsignarTecnico(Solicitud solicitud)
+    {
+        solicitudSeleccionada = solicitud;
+        mostrarModal = true;
+        mostrarSolicitudes = false;
+    }
+
+    private async Task HandleTecnicoSelected(int tecnicoId)
+    {
+        await solicitudService.AsignarTecnicoASolicitud(solicitudSeleccionada.IdSolicitud, tecnicoId);
+        await JS.InvokeAsync<object>("alert", $"Técnico asignado correctamente a la solicitud {solicitudSeleccionada.IdSolicitud}.");
+        await ToggleSolicitudesEnEspera();
+        mostrarSolicitudes = true;
+    }
+
+    private string NombreCompleto => Usuario != null ? $"{Usuario.Nombre} {Usuario.Apellido}" : "Usuario Desconocido";
+}

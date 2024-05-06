@@ -1,0 +1,38 @@
+﻿@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Estructura
+
+<Modal IsOpen="@IsOpen" OnClose="HandleClose">
+    <ModalHeader>
+        <h5 class="modal-title">Seleccionar Técnico</h5>
+    </ModalHeader>
+    <ModalBody>
+        <div class="technician-list">
+            @if (Tecnicos != null && !Tecnicos.ListaVacia())
+            {
+                foreach (Nodo nodo in Tecnicos)
+                {
+                    Usuario_Persona tecnico = nodo.Informacion as Usuario_Persona;
+                    <button class="btn btn-technician" @onclick="() => SelectTecnico(tecnico.Id)">
+                        @tecnico.Nombre @tecnico.Apellido
+                    </button>
+                }
+            }
+        </div>
+    </ModalBody>
+</Modal>
+
+@code {
+    [Parameter] public ListaEnlazadaSimple Tecnicos { get; set; }
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<int> OnTecnicoSelected { get; set; }
+
+    private void SelectTecnico(int tecnicoId)
+    {
+        OnTecnicoSelected.InvokeAsync(tecnicoId);
+    }
+
+    private void HandleClose()
+    {
+        IsOpen = false;
+    }
+}

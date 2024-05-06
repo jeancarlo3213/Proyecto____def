@@ -1,10 +1,10 @@
-﻿@page "/Inicio_sesion_cliente"
+﻿@page "/Jefe/Inicio_Sesion_Jefe"
 @using Proyecto____def.Servicios
 @inject UsuarioService usuarioService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<h3 class="titulo">Iniciar Sesión como Cliente</h3>
+<h3 class="titulo">Iniciar Sesión como Jefe</h3>
 
 <div class="form-group">
     <label for="usuario">Usuario:</label>
@@ -26,10 +26,10 @@
     {
         if (!string.IsNullOrWhiteSpace(usuario) && !string.IsNullOrWhiteSpace(contraseña))
         {
-            bool credencialesValidas = await usuarioService.ValidarCredencialesCliente(usuario, contraseña);
+            bool credencialesValidas = await usuarioService.ValidarCredencialesJefe(usuario, contraseña);
             if (credencialesValidas)
             {
-                NavigationManager.NavigateTo($"/Cliente/Menu_Cliente/{usuario}");
+                NavigationManager.NavigateTo($"/Jefe/Menu_Jefe/{usuario}");
             }
             else
             {

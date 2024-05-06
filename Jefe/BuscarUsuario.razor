@@ -1,0 +1,136 @@
+﻿@page "/Jefe/BuscarUsuario"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@using Proyecto____def.Estructura
+@inject UsuarioService usuarioService
+@inject NavigationManager NavigationManager
+
+<h3>Buscar Usuario</h3>
+<button class="btn btn-primary" @onclick="ToggleFilters">Filtros</button>
+
+@if (showFilters)
+{
+    <select @onchange="FilterChanged">
+        <option value="">Seleccione un filtro</option>
+        <option value="id">Buscar por ID</option>
+        <option value="nombre">Buscar por Nombre</option>
+        <option value="dpi">Buscar por DPI</option>
+        <option value="oficina">Buscar por Número de Oficina</option>
+        <option value="todos">Mostrar Todos los Usuarios</option>
+    </select>
+
+    if (!string.IsNullOrEmpty(currentFilter))
+    {
+        <EditForm Model="@searchModel" OnValidSubmit="HandleSearch">
+            @switch (currentFilter)
+            {
+                case "id":
+                    <InputNumber @bind-Value="searchModel.Id" placeholder="Ingrese ID" />
+                    break;
+                case "nombre":
+                    <InputText @bind-Value="searchModel.Nombre" placeholder="Ingrese Nombre" />
+                    break;
+                case "dpi":
+                    <InputText @bind-Value="searchModel.DPI" placeholder="Ingrese DPI" />
+                    break;
+                case "oficina":
+                    <InputNumber @bind-Value="searchModel.NumeroOficina" placeholder="Ingrese Número de Oficina" />
+                    break;
+            }
+            <button type="submit" class="btn btn-secondary">Buscar</button>
+        </EditForm>
+    }
+}
+
+@if (resultadosBusqueda != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Puesto</th>
+                <th>DPI</th>
+                <th>Número de Oficina</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Nodo nodo in resultadosBusqueda)
+            {
+                if (nodo.Informacion is Usuario_Persona usuario)
+                {
+                    <tr>
+                        <td>@usuario.Id</td>
+                        <td>@usuario.Nombre</td>
+                        <td>@usuario.Apellido</td>
+                        <td>@usuario.UsuarioNombre</td>
+                        <td>@usuario.Email</td>
+                        <td>@usuario.Puesto</td>
+                        <td>@usuario.DPI</td>
+                        <td>@usuario.NumeroOficina</td>
+                        <td><button class="btn btn-info" @onclick="() => VerDetalles(usuario.Id)">Ver Detalles</button></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No se encontraron usuarios.</p>
+}
+
+@code {
+    private SearchModel searchModel = new SearchModel();
+    private ListaEnlazadaSimple resultadosBusqueda = new ListaEnlazadaSimple();
+    private bool showFilters = false;
+    private string currentFilter = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios() ?? new ListaEnlazadaSimple();
+    }
+
+    private async Task HandleSearch()
+    {
+        switch (currentFilter)
+        {
+            case "id":
+                resultadosBusqueda = await usuarioService.BuscarPorId(searchModel.Id.Value);
+                break;
+            case "nombre":
+                resultadosBusqueda = await usuarioService.BuscarPorNombre(searchModel.Nombre);
+                break;
+            case "dpi":
+                resultadosBusqueda = await usuarioService.BuscarPorDPI(searchModel.DPI);
+                break;
+            case "oficina":
+                resultadosBusqueda = await usuarioService.BuscarPorNumeroOficina(searchModel.NumeroOficina.Value);
+                break;
+            case "todos":
+                resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios();
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void ToggleFilters() => showFilters = !showFilters;
+
+    private void FilterChanged(ChangeEventArgs e)
+    {
+        currentFilter = e.Value.ToString();
+        if (currentFilter == "todos")
+        {
+            HandleSearch();
+        }
+    }
+
+    private void VerDetalles(int usuarioId)
+    {
+        NavigationManager.NavigateTo($"/Jefe/DetallesUsuario/{usuarioId}");
+    }
+}

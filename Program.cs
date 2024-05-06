@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Proyecto____def.Data;
 using Proyecto____def.Servicios;
-using Proyecto_def.Servicios; // Asegúrate de incluir el namespace correcto
+
 
 var builder = WebApplication.CreateBuilder(args);
 

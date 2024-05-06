@@ -106,6 +106,48 @@ namespace Proyecto____def.Servicios
             }
         }
 
+        public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorEstado(string estado)
+        {
+            var solicitudes = new ListaEnlazadaSimple();
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("SELECT * FROM Solicitudes WHERE Estado = @Estado", connection);
+                cmd.Parameters.AddWithValue("@Estado", estado);
+
+                await connection.OpenAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        var solicitud = new Solicitud
+                        {
+                            IdSolicitud = reader.GetInt32(reader.GetOrdinal("IdSolicitud")),
+                            IdCliente = reader.GetInt32(reader.GetOrdinal("IdCliente")),
+                            IdOpcion = reader.GetInt32(reader.GetOrdinal("IdOpcion")),
+                            DescripcionProblema = reader.GetString(reader.GetOrdinal("DescripcionProblema")),
+                            Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                            // Otros campos según necesidad
+                        };
+                        solicitudes.AgregarAlFinal(solicitud);
+                    }
+                }
+            }
+
+            return solicitudes;
+        }
+        public async Task AsignarTecnicoASolicitud(int idSolicitud, int idTecnico)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("UPDATE Solicitudes SET IdTecnico = @IdTecnico, Estado = 'Asignado' WHERE IdSolicitud = @IdSolicitud", connection);
+                cmd.Parameters.AddWithValue("@IdSolicitud", idSolicitud);
+                cmd.Parameters.AddWithValue("@IdTecnico", idTecnico);
+
+                await connection.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
 
         // Métodos adicionales para manejar el historial de cambios y otras operaciones pueden ser implementados aquí.
     }
