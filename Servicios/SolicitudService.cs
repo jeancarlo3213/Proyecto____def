@@ -14,7 +14,43 @@ namespace Proyecto____def.Servicios
         {
             _connectionString = connectionString;
         }
+        public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorUsuario(int idUsuario)
+        {
+            ListaEnlazadaSimple solicitudes = new ListaEnlazadaSimple();
 
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var query = "SELECT * FROM Solicitudes WHERE IdCliente = @IdCliente ORDER BY FechaCreacion DESC";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@IdCliente", idUsuario);
+                    await connection.OpenAsync();
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            Solicitud solicitud = new Solicitud
+                            {
+                                IdSolicitud = reader.GetInt32(reader.GetOrdinal("IdSolicitud")),
+                                IdCliente = reader.GetInt32(reader.GetOrdinal("IdCliente")),
+                                IdOpcion = reader.GetInt32(reader.GetOrdinal("IdOpcion")),
+                                DescripcionProblema = reader.GetString(reader.GetOrdinal("DescripcionProblema")),
+                                Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                                FechaCreacion = reader.GetDateTime(reader.GetOrdinal("FechaCreacion")),
+                                FechaUltimaActualizacion = reader.GetDateTime(reader.GetOrdinal("FechaUltimaActualizacion")),
+                                NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
+                                DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
+                                Prioridad = reader.GetString(reader.GetOrdinal("Prioridad"))
+                                // Añade más campos según sea necesario.
+                            };
+                            solicitudes.AgregarAlFinal(solicitud);
+                        }
+                    }
+                }
+            }
+            return solicitudes;
+        }
         public async Task<Solicitud> ObtenerSolicitudPorIdYIdTecnico(int idSolicitud, int idTecnico)
         {
             Solicitud solicitud = null;

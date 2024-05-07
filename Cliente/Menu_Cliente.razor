@@ -12,6 +12,9 @@
 {
     <div class="bienvenida">Bienvenido, @NombreCompleto</div>
     <button class="btn toggle-btn" @onclick="ToggleFormularioSolicitud">Generar Solicitud</button>
+    <button class="btn toggle-solicitudes-btn" @onclick="ToggleVerSolicitudes">
+        @(mostrarSolicitudes ? "Ocultar Mis Solicitudes" : "Ver Mis Solicitudes")
+    </button>
 }
 
 @if (mostrarFormulario)
@@ -29,6 +32,23 @@
     </div>
 }
 
+@if (mostrarSolicitudes)
+{
+    <div class="lista-solicitudes">
+        <h4>Mis Solicitudes</h4>
+        @foreach (Nodo nodo in listaSolicitudes)
+        {
+            if (nodo.Informacion is Solicitud solicitud)
+            {
+                <div class="solicitud-item">
+                    <p><strong>ID de Solicitud:</strong> @solicitud.IdSolicitud</p>
+                    <p><strong>Descripción:</strong> @solicitud.DescripcionDetallada</p>
+                    <button class="btn detalle-solicitud-btn" @onclick="() => VerDetalleSolicitud(solicitud.IdSolicitud)">Ver Detalles</button>
+                </div>
+            }
+        }
+    </div>
+}
 
 @if (opcionSeleccionada != null)
 {
@@ -46,6 +66,7 @@
         <button class="btn confirmar-btn" @onclick="ConfirmarSolicitud">Confirmar Solicitud</button>
     </div>
 }
+
 @if (mostrarAgregarOpcion)
 {
     <div class="agregar-opcion">
@@ -55,42 +76,27 @@
     </div>
 }
 
-@if (solicitudCreada != null)
-{
-    <div class="detalle-solicitud-creada">
-        <h4>Solicitud Creada Exitosamente</h4>
-        <p><strong>ID de Solicitud:</strong> @solicitudCreada.IdSolicitud</p>
-        <p><strong>ID de Opción:</strong> @solicitudCreada.IdOpcion</p>
-        <p><strong>Nombre Cliente:</strong> @solicitudCreada.NombreCreador</p>
-        <p><strong>Descripción:</strong> @solicitudCreada.DescripcionDetallada</p>
-        <p><strong>Prioridad:</strong> @solicitudCreada.Prioridad</p>
-        <p><strong>Estado:</strong> @solicitudCreada.Estado</p>
-        <p><strong>Fecha Creación:</strong> @solicitudCreada.FechaCreacion.ToString("dd/MM/yyyy HH:mm:ss")</p>
-        <button class="btn btn-verde" @onclick="() => VerDetalleSolicitud(solicitudCreada.IdSolicitud)">Ver Detalles</button>
-    </div>
-}
-
-
 <div class="mensaje">
     @if (mensajeConfirmacion != null)
     {
         <p class="mensaje-confirmacion">@mensajeConfirmacion</p>
     }
+    }
 </div>
-
 @code {
     [Parameter]
     public string NombreUsuario { get; set; }
     private Usuario_Persona usuario;
     private ListaEnlazadaSimple opciones = new ListaEnlazadaSimple();
+    private ListaEnlazadaSimple listaSolicitudes = new ListaEnlazadaSimple();
     private bool mostrarFormulario = false;
+    private bool mostrarSolicitudes = false;
     private bool mostrarAgregarOpcion = false;
     private Opcion opcionSeleccionada;
     private string nuevaOpcionDescripcion;
     private string descripcionDetallada;
     private string prioridadSeleccionada = "";
     private string mensajeConfirmacion;
-    private Solicitud solicitudCreada;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,6 +106,21 @@
             opciones = await solicitudService.ObtenerOpcionesAsync();
         }
     }
+
+    private void ToggleVerSolicitudes()
+    {
+        mostrarSolicitudes = !mostrarSolicitudes;
+        if (mostrarSolicitudes && listaSolicitudes.Count() == 0) // Asegúrate de cargar solicitudes si es necesario
+        {
+            CargarSolicitudes();
+        }
+    }
+
+    private async void CargarSolicitudes()
+    {
+        listaSolicitudes = await solicitudService.ObtenerSolicitudesPorUsuario(usuario.Id);
+    }
+
     private void VerDetalleSolicitud(int idSolicitud)
     {
         NavigationManager.NavigateTo($"/detalle-solicitud/{idSolicitud}");
@@ -117,7 +138,7 @@
     private void SeleccionarOpcion(Opcion opcion)
     {
         opcionSeleccionada = opcion;
-        mostrarFormulario = false; // Oculta el formulario de opciones
+        mostrarFormulario = false;
         mensajeConfirmacion = null;
         StateHasChanged();
     }
@@ -139,6 +160,7 @@
             StateHasChanged();
         }
     }
+
     private async Task ConfirmarSolicitud()
     {
         if (opcionSeleccionada != null && !string.IsNullOrWhiteSpace(descripcionDetallada) && !string.IsNullOrWhiteSpace(prioridadSeleccionada))
@@ -158,8 +180,7 @@
             try
             {
                 int idSolicitudGenerada = await solicitudService.AgregarSolicitudAsync(nuevaSolicitud);
-                nuevaSolicitud.IdSolicitud = idSolicitudGenerada; // Asigna el ID generado
-                solicitudCreada = nuevaSolicitud; // Guarda la solicitud creada para mostrar
+                nuevaSolicitud.IdSolicitud = idSolicitudGenerada;
                 mensajeConfirmacion = "Solicitud agregada correctamente. ID de Solicitud: " + idSolicitudGenerada;
                 ResetForm();
             }
@@ -174,11 +195,10 @@
         }
     }
 
-
     private void ResetForm()
     {
         descripcionDetallada = "";
-        prioridadSeleccionada = ""; // Resetea la prioridad a vacío
+        prioridadSeleccionada = "";
         opcionSeleccionada = null;
         mensajeConfirmacion = null;
         mostrarAgregarOpcion = false;
