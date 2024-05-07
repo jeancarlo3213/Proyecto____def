@@ -42,7 +42,7 @@ namespace Proyecto____def.Servicios
                                 NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
                                 DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
                                 Prioridad = reader.GetString(reader.GetOrdinal("Prioridad"))
-                                // Añade más campos según sea necesario.
+                                
                             };
                             solicitudes.AgregarAlFinal(solicitud);
                         }
@@ -51,31 +51,7 @@ namespace Proyecto____def.Servicios
             }
             return solicitudes;
         }
-        public async Task<Solicitud> ObtenerSolicitudPorIdYIdTecnico(int idSolicitud, int idTecnico)
-        {
-            Solicitud solicitud = null;
-
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var cmd = new SqlCommand("SELECT * FROM Solicitudes WHERE IdSolicitud = @IdSolicitud AND IdTecnico = @IdTecnico", connection);
-                cmd.Parameters.AddWithValue("@IdSolicitud", idSolicitud);
-                cmd.Parameters.AddWithValue("@IdTecnico", idTecnico);
-
-                connection.Open();
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    if (reader.Read())
-                    {
-                        solicitud = new Solicitud
-                        {
-                            // Mapear los campos de la solicitud
-                        };
-                    }
-                }
-            }
-
-            return solicitud;
-        }
+        
         public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorTecnico(int idTecnico)
         {
             ListaEnlazadaSimple solicitudes = new ListaEnlazadaSimple();
@@ -151,7 +127,55 @@ ORDER BY FechaCreacion DESC";
             }
             return solicitudes;
         }
+        public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorTecnicoYEstado(int idTecnico, string estado)
+        {
+            ListaEnlazadaSimple solicitudes = new ListaEnlazadaSimple();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+SELECT * FROM Solicitudes 
+WHERE IdTecnico = @IdTecnico AND Estado = @Estado
+ORDER BY FechaCreacion DESC";
 
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@IdTecnico", idTecnico);
+                    command.Parameters.AddWithValue("@Estado", estado);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            var solicitud = new Solicitud
+                            {
+                                IdSolicitud = reader.GetInt32(reader.GetOrdinal("IdSolicitud")),
+                                DescripcionProblema = reader.GetString(reader.GetOrdinal("DescripcionProblema")),
+                                Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                                // Añadir más campos si son necesarios
+                            };
+                            solicitudes.AgregarAlFinal(solicitud);
+                        }
+                    }
+                }
+            }
+            return solicitudes;
+        }
+
+
+        public async Task ActualizarCalificacionSolicitud(Solicitud solicitud)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("UPDATE Solicitudes SET Calificacion = @Calificacion, Estado = @Estado WHERE IdSolicitud = @IdSolicitud", connection);
+                cmd.Parameters.AddWithValue("@Calificacion", solicitud.Calificacion);
+                cmd.Parameters.AddWithValue("@Estado", solicitud.Estado);
+                cmd.Parameters.AddWithValue("@IdSolicitud", solicitud.IdSolicitud);
+
+                await connection.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
 
 
         public async Task<int> ObtenerTecnicoIdPorNombreUsuario(string nombreUsuario)
@@ -276,10 +300,10 @@ ORDER BY FechaCreacion DESC";
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("SELECT IdSolicitud, IdCliente, IdOpcion, DescripcionProblema, Estado, FechaCreacion, FechaUltimaActualizacion, NombreCreador, DescripcionDetallada, Prioridad FROM Solicitudes WHERE IdSolicitud = @IdSolicitud", connection);
+                var cmd = new SqlCommand("SELECT IdSolicitud, IdCliente, IdOpcion, DescripcionProblema, Estado, FechaCreacion, FechaUltimaActualizacion, NombreCreador, DescripcionDetallada, Prioridad, Calificacion FROM Solicitudes WHERE IdSolicitud = @IdSolicitud", connection);
                 cmd.Parameters.AddWithValue("@IdSolicitud", idSolicitud);
 
-                connection.Open();
+                await connection.OpenAsync();
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (reader.Read())
@@ -295,7 +319,8 @@ ORDER BY FechaCreacion DESC";
                             FechaUltimaActualizacion = reader.GetDateTime(reader.GetOrdinal("FechaUltimaActualizacion")),
                             NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
                             DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
-                            Prioridad = reader.GetString(reader.GetOrdinal("Prioridad"))
+                            Prioridad = reader.GetString(reader.GetOrdinal("Prioridad")),
+                            Calificacion = reader.IsDBNull(reader.GetOrdinal("Calificacion")) ? null : reader.GetString(reader.GetOrdinal("Calificacion"))
                         };
                     }
                 }
@@ -303,6 +328,7 @@ ORDER BY FechaCreacion DESC";
 
             return solicitud;
         }
+
 
         public async Task<int> AgregarSolicitudAsync(Solicitud solicitud)
         {

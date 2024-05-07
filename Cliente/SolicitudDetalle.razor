@@ -10,14 +10,28 @@
     <div class="detalle-solicitud-creada">
         <p><strong>ID de Solicitud:</strong> @solicitud.IdSolicitud</p>
         <p><strong>ID de Opción:</strong> @solicitud.IdOpcion</p>
-        <p><strong>ID Tecnico Asignado :</strong>@solicitud.IdTecnico</p>
+        <p><strong>ID Técnico Asignado:</strong> @solicitud.IdTecnico</p>
         <p><strong>Nombre Cliente:</strong> @solicitud.NombreCreador</p>
         <p><strong>Descripción:</strong> @solicitud.DescripcionDetallada</p>
         <p><strong>Prioridad:</strong> @solicitud.Prioridad</p>
         <p><strong>Estado:</strong> @solicitud.Estado</p>
         <p><strong>Fecha Creación:</strong> @solicitud.FechaCreacion.ToString("dd/MM/yyyy HH:mm:ss")</p>
-        <p><strong>Calificacion: </strong>@solicitud.Calificacion</p>
-
+        <p><strong>Calificación:</strong> @solicitud.Calificacion</p>
+        @if (solicitud.Estado == "Completado" && solicitud.Calificacion == "Ninguna")
+        {
+            <p><em>Si califica como 'Mala', la solicitud será reasignada.</em></p>
+            <button class="btn btn-primary" @onclick="ShowCalificationOptions">Calificar</button>
+            @if (showCalificationOptions)
+            {
+                <select @bind="selectedCalification">
+                    <option value="">Seleccione una calificación...</option>
+                    <option value="Buena">Buena</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Mala">Mala</option>
+                </select>
+                <button class="btn btn-secondary" @onclick="ConfirmCalification">Confirmar Calificación</button>
+            }
+        }
     </div>
 }
 else
@@ -29,10 +43,44 @@ else
     [Parameter]
     public int IdSolicitud { get; set; }
     private Solicitud solicitud;
+    private bool showCalificationOptions = false;
+    private string selectedCalification;
 
     protected override async Task OnInitializedAsync()
     {
         solicitud = await solicitudService.ObtenerSolicitudPorId(IdSolicitud);
     }
-}
 
+    private void ShowCalificationOptions()
+    {
+        showCalificationOptions = true;
+    }
+
+    private async Task ConfirmCalification()
+    {
+        if (!string.IsNullOrEmpty(selectedCalification))
+        {
+            // Asigna la calificación seleccionada
+            solicitud.Calificacion = selectedCalification;
+
+            // Cambia el estado si la calificación es 'Mala'
+            if (selectedCalification == "Mala")
+            {
+                solicitud.Estado = "Reasignar";
+            }
+
+            // Actualiza la solicitud en la base de datos
+            await solicitudService.ActualizarCalificacionSolicitud(solicitud);
+
+            // Oculta el selector de calificación
+            showCalificationOptions = false;
+
+            // Recarga los datos actualizados de la solicitud
+            solicitud = await solicitudService.ObtenerSolicitudPorId(solicitud.IdSolicitud);
+
+            // Forza la actualización de la interfaz de usuario
+            StateHasChanged();
+        }
+    }
+
+}

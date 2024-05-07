@@ -28,21 +28,31 @@
                     <text>Ver Solicitudes en Espera</text>
                 }
             </button>
+            <button class="btn btn-warning" @onclick="ToggleSolicitudesReasignar">
+                @if (mostrarSolicitudes)
+                {
+                    <text>Ocultar Solicitudes Reasignadas</text>
+                }
+                else
+                {
+                    <text>Ver Solicitudes Reasignadas</text>
+                }
+            </button>
             <button class="btn btn-primary" @onclick="() => NavigateToAddUser()">Agregar Usuario</button>
             <button class="btn btn-secondary" @onclick="() => NavigateToSearchUser()">Buscar Usuarios</button>
         </div>
 
         @code {
-        private void NavigateToAddUser()
-        {
-            NavigationManager.NavigateTo("/Jefe/AgregarNuevoUsuario");
-        }
+            private void NavigateToAddUser()
+            {
+                NavigationManager.NavigateTo("/Jefe/AgregarNuevoUsuario");
+            }
 
-        private void NavigateToSearchUser()
-        {
-            NavigationManager.NavigateTo("/Jefe/BuscarUsuario");
+            private void NavigateToSearchUser()
+            {
+                NavigationManager.NavigateTo("/Jefe/BuscarUsuario");
+            }
         }
-    }
 
         @if (mostrarSolicitudes && SolicitudesEnEspera != null && !SolicitudesEnEspera.ListaVacia())
         {
@@ -116,6 +126,16 @@ else
         if (mostrarSolicitudes)
         {
             SolicitudesEnEspera = await solicitudService.ObtenerSolicitudesPorEstado("En espera");
+        }
+        mostrarModal = false; // Esconde cualquier modal abierto
+    }
+
+    private async Task ToggleSolicitudesReasignar()
+    {
+        mostrarSolicitudes = !mostrarSolicitudes;
+        if (mostrarSolicitudes)
+        {
+            SolicitudesEnEspera = await solicitudService.ObtenerSolicitudesPorEstado("Reasignar");
         }
         mostrarModal = false; // Esconde cualquier modal abierto
     }

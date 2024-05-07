@@ -86,34 +86,58 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
-        solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYEstado(tecnicoId, "Asignado", "En Proceso", "Completado");
+        try
+        {
+            int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
+            await LoadSolicitudes(tecnicoId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar las solicitudes: {ex.Message}");
+            // Considera mostrar algún mensaje de error en la interfaz de usuario
+        }
+    }
+
+    private async Task LoadSolicitudes(int tecnicoId)
+    {
+        solicitudes = await solicitudService.ObtenerSolicitudesPorTecnico(tecnicoId);
+        StateHasChanged();
     }
 
     private async Task HandleSearch()
     {
-        int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
-        solicitudes = new ListaEnlazadaSimple(); // Limpiar los resultados anteriores antes de la nueva búsqueda
-        if (currentFilter == "estado")
+        try
         {
-            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYEstado(tecnicoId, searchModel.Estado, searchModel.Estado, searchModel.Estado);
+            int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
+            if (currentFilter == "todos")
+            {
+                await LoadSolicitudes(tecnicoId);
+            }
+            else
+            {
+                solicitudes = new ListaEnlazadaSimple(); // Limpiar los resultados anteriores antes de la nueva búsqueda
+                if (currentFilter == "estado")
+                {
+                    solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYEstado(tecnicoId, searchModel.Estado);
+                }
+                else if (currentFilter == "prioridad")
+                {
+                    solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYPrioridad(tecnicoId, searchModel.Prioridad);
+                }
+                StateHasChanged();
+            }
         }
-        else if (currentFilter == "prioridad")
+        catch (Exception ex)
         {
-            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYPrioridad(tecnicoId, searchModel.Prioridad);
+            Console.WriteLine($"Error durante la búsqueda: {ex.Message}");
+            // Considera mostrar algún mensaje de error en la interfaz de usuario
         }
-        else if (currentFilter == "todos")
-        {
-            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnico(tecnicoId);
-        }
-        StateHasChanged();
     }
 
     private void VerDetalles(int idSolicitud)
     {
         NavigationManager.NavigateTo($"/Tecnico/DetallesSolicitudTecnico/{idSolicitud}");
     }
-
 
     private void ToggleFilters() => showFilters = !showFilters;
 

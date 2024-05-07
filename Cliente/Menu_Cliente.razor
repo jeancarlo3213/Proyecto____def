@@ -81,7 +81,7 @@
     {
         <p class="mensaje-confirmacion">@mensajeConfirmacion</p>
     }
-    }
+    
 </div>
 @code {
     [Parameter]
@@ -110,10 +110,10 @@
     private void ToggleVerSolicitudes()
     {
         mostrarSolicitudes = !mostrarSolicitudes;
-        if (mostrarSolicitudes && listaSolicitudes.Count() == 0) // Asegúrate de cargar solicitudes si es necesario
-        {
+        
+        
             CargarSolicitudes();
-        }
+        
     }
 
     private async void CargarSolicitudes()
