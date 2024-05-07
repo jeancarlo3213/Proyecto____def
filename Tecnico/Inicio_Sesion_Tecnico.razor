@@ -29,7 +29,7 @@
             bool credencialesValidas = await usuarioService.ValidarCredencialesTecnico(usuario, contraseña);
             if (credencialesValidas)
             {
-                NavigationManager.NavigateTo($"/Tecnico/Menu_Tecnico/{usuario}");
+                NavigationManager.NavigateTo($"/Tecnico/MenuTecnico/{usuario}");
             }
             else
             {

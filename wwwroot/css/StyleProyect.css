@@ -313,3 +313,59 @@ textarea {
 .btn:hover {
     opacity: 0.85;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* detalles solci
+    tde
+*/
+.detalle-titulo {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.detalle-contenedor {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+    .detalle-contenedor p {
+        font-size: 16px;
+        color: #666;
+        line-height: 1.5;
+    }
+
+.btn-primary, .btn-success {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #007BFF;
+    color: white;
+}
+
+.btn-success {
+    background-color: #28A745;
+    color: white;
+}

@@ -1,0 +1,69 @@
+﻿@page "/Tecnico/DetallesSolicitudTecnico/{IdSolicitud}"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject SolicitudService solicitudService
+@inject NavigationManager NavigationManager
+
+<h3 class="detalle-titulo">Detalle de Solicitud</h3>
+
+@if (solicitud != null)
+{
+    <div class="detalle-contenedor">
+        <p>ID de Solicitud: <strong>@solicitud.IdSolicitud</strong></p>
+        <p>Descripción: <strong>@solicitud.DescripcionProblema</strong></p>
+        <p>Estado: <strong>@solicitud.Estado</strong></p>
+        <p>Fecha de Creación: <strong>@solicitud.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss")</strong></p>
+        <p>Última Actualización: <strong>@solicitud.FechaUltimaActualizacion.ToString("yyyy-MM-dd HH:mm:ss")</strong></p>
+        <p>Calificación: <strong>@solicitud.Calificacion</strong></p>
+        <p>Fecha de Resolución: <strong>@(solicitud.FechaResolucion.HasValue ? solicitud.FechaResolucion.Value.ToString("yyyy-MM-dd HH:mm:ss") : "Desconocida")</strong></p>
+
+
+        @if (solicitud.Estado == "Asignado")
+        {
+            <button class="btn btn-primary" @onclick="TomarSolicitud">Tomar Solicitud</button>
+        }
+        else if (solicitud.Estado == "En Proceso")
+        {
+            <button class="btn btn-success" @onclick="MarcarComoCompletado">Marcar como Completado</button>
+        }
+    </div>
+}
+else
+{
+    <p>No se encontró la solicitud especificada.</p>
+}
+
+@code {
+    [Parameter]
+    public string IdSolicitud { get; set; }
+
+    private Solicitud solicitud;
+    private int solicitudId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (int.TryParse(IdSolicitud, out solicitudId))
+        {
+            solicitud = await solicitudService.ObtenerSolicitudPorId(solicitudId);
+        }
+        else
+        {
+            throw new InvalidOperationException("ID de solicitud no es válido.");
+        }
+    }
+
+    private async Task TomarSolicitud()
+    {
+        solicitud.Estado = "En Proceso";
+        solicitud.FechaUltimaActualizacion = DateTime.Now;
+        await solicitudService.ActualizarSolicitud(solicitud);
+    }
+
+    private async Task MarcarComoCompletado()
+    {
+        solicitud.Estado = "Completado";
+        solicitud.FechaUltimaActualizacion = DateTime.Now;
+        solicitud.FechaResolucion = DateTime.Now;
+        await solicitudService.ActualizarSolicitud(solicitud);
+    }
+}

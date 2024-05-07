@@ -1,0 +1,125 @@
+﻿@page "/Tecnico/SolicitudesAsignadas/{NombreUsuario}"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@using Proyecto____def.Estructura
+@inject SolicitudService solicitudService
+@inject NavigationManager NavigationManager
+
+<h3>Solicitudes Asignadas</h3>
+<button class="btn btn-primary" @onclick="ToggleFilters">Filtros</button>
+
+@if (showFilters)
+{
+    <select @onchange="FilterChanged">
+        <option value="">Seleccione un filtro</option>
+        <option value="estado">Buscar por Estado</option>
+        <option value="prioridad">Buscar por Prioridad</option>
+        <option value="todos">Mostrar Todos</option>
+    </select>
+
+    @if (!string.IsNullOrEmpty(currentFilter) && currentFilter != "todos")
+    {
+        <EditForm Model="@searchModel" OnValidSubmit="HandleSearch">
+            @switch (currentFilter)
+            {
+                case "estado":
+                    <select @bind="searchModel.Estado">
+                        <option value="">Seleccione un estado</option>
+                        <option value="Asignado">Asignado</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Completado">Completado</option>
+                    </select>
+                    break;
+                case "prioridad":
+                    <select @bind="searchModel.Prioridad">
+                        <option value="">Seleccione una prioridad</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                    break;
+            }
+            <button type="submit" class="btn btn-secondary">Buscar</button>
+        </EditForm>
+    }
+}
+
+@if (solicitudes != null && !solicitudes.ListaVacia())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID Solicitud</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Nodo nodo in solicitudes)
+            {
+                if (nodo.Informacion is Solicitud solicitud)
+                {
+                    <tr>
+                        <td>@solicitud.IdSolicitud</td>
+                        <td>@solicitud.DescripcionProblema</td>
+                        <td>@solicitud.Estado</td>
+                        <td><button class="btn btn-info" @onclick="() => VerDetalles(solicitud.IdSolicitud)">Ver Detalles</button></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No se encontraron solicitudes.</p>
+}
+
+@code {
+    [Parameter]
+    public string NombreUsuario { get; set; }
+    private ListaEnlazadaSimple solicitudes;
+    private SolicitudSearchModel searchModel = new SolicitudSearchModel();
+    private bool showFilters = false;
+    private string currentFilter = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
+        solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYEstado(tecnicoId, "Asignado", "En Proceso", "Completado");
+    }
+
+    private async Task HandleSearch()
+    {
+        int tecnicoId = await solicitudService.ObtenerTecnicoIdPorNombreUsuario(NombreUsuario);
+        solicitudes = new ListaEnlazadaSimple(); // Limpiar los resultados anteriores antes de la nueva búsqueda
+        if (currentFilter == "estado")
+        {
+            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYEstado(tecnicoId, searchModel.Estado, searchModel.Estado, searchModel.Estado);
+        }
+        else if (currentFilter == "prioridad")
+        {
+            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnicoYPrioridad(tecnicoId, searchModel.Prioridad);
+        }
+        else if (currentFilter == "todos")
+        {
+            solicitudes = await solicitudService.ObtenerSolicitudesPorTecnico(tecnicoId);
+        }
+        StateHasChanged();
+    }
+
+    private void VerDetalles(int idSolicitud)
+    {
+        NavigationManager.NavigateTo($"/Tecnico/DetallesSolicitudTecnico/{idSolicitud}");
+    }
+
+
+    private void ToggleFilters() => showFilters = !showFilters;
+
+    private void FilterChanged(ChangeEventArgs e)
+    {
+        currentFilter = e.Value?.ToString();
+        StateHasChanged(); // Re-render the component to show the correct filter input
+    }
+}

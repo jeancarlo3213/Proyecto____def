@@ -1,0 +1,19 @@
+﻿@page "/Tecnico/MenuTecnico/{NombreUsuario}"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@using Proyecto____def.Estructura
+@inject NavigationManager NavigationManager
+
+<h3>Menú Técnico</h3>
+
+<button class="btn btn-primary" @onclick="() => VerSolicitudesAsignadas()">Ver Mis Solicitudes Asignadas</button>
+
+@code {
+    [Parameter]
+    public string NombreUsuario { get; set; }
+
+    private void VerSolicitudesAsignadas()
+    {
+        NavigationManager.NavigateTo($"/Tecnico/SolicitudesAsignadas/{NombreUsuario}");
+    }
+}
