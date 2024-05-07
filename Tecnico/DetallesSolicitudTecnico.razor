@@ -10,13 +10,15 @@
 {
     <div class="detalle-contenedor">
         <p>ID de Solicitud: <strong>@solicitud.IdSolicitud</strong></p>
+        <p>Nombre Creador:<strong>@solicitud.NombreCreador</strong></p>
         <p>Descripción: <strong>@solicitud.DescripcionProblema</strong></p>
         <p>Estado: <strong>@solicitud.Estado</strong></p>
         <p>Fecha de Creación: <strong>@solicitud.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss")</strong></p>
         <p>Última Actualización: <strong>@solicitud.FechaUltimaActualizacion.ToString("yyyy-MM-dd HH:mm:ss")</strong></p>
         <p>Calificación: <strong>@solicitud.Calificacion</strong></p>
         <p>Fecha de Resolución: <strong>@(solicitud.FechaResolucion.HasValue ? solicitud.FechaResolucion.Value.ToString("yyyy-MM-dd HH:mm:ss") : "Desconocida")</strong></p>
-
+        <p>Descripción Detallada:<strong>@solicitud.DescripcionDetallada</strong></p>
+        <p>Prioridad<strong>@solicitud.Prioridad</strong></p>
 
         @if (solicitud.Estado == "Asignado")
         {
