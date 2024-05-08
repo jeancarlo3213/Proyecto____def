@@ -16,6 +16,7 @@
         <option value="nombre">Buscar por Nombre</option>
         <option value="dpi">Buscar por DPI</option>
         <option value="oficina">Buscar por Número de Oficina</option>
+        <option value="puesto">Buscar por Puesto</option>
         <option value="todos">Mostrar Todos los Usuarios</option>
     </select>
 
@@ -35,6 +36,13 @@
                     break;
                 case "oficina":
                     <InputNumber @bind-Value="searchModel.NumeroOficina" placeholder="Ingrese Número de Oficina" />
+                    break;
+                case "puesto":
+                    <select @bind="searchModel.Puesto">
+                        <option value="Cliente">Cliente</option>
+                        <option value="Jefe">Jefe</option>
+                        <option value="Técnico">Técnico</option>
+                    </select>
                     break;
             }
             <button type="submit" class="btn btn-secondary">Buscar</button>
@@ -65,7 +73,7 @@
                 {
                     <tr>
                         <td>@usuario.Id</td>
-                        <td>@usuario.Nombre</td>
+                        <td>@usuario.Nombre</td
                         <td>@usuario.Apellido</td>
                         <td>@usuario.UsuarioNombre</td>
                         <td>@usuario.Email</td>
@@ -110,6 +118,9 @@ else
                 break;
             case "oficina":
                 resultadosBusqueda = await usuarioService.BuscarPorNumeroOficina(searchModel.NumeroOficina.Value);
+                break;
+            case "puesto":
+                resultadosBusqueda = await usuarioService.BuscarPorPuesto(searchModel.Puesto);
                 break;
             case "todos":
                 resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios();

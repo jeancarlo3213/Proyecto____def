@@ -48,7 +48,40 @@ namespace Proyecto____def.Servicios
             }
             return usuario;
         }
-        
+        public async Task<ListaEnlazadaSimple> BuscarPorPuesto(string puesto)
+        {
+            var listaUsuarios = new ListaEnlazadaSimple();  // Asumiendo que ListaEnlazadaSimple es una estructura que has creado
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var query = "SELECT * FROM Usuarios WHERE Puesto = @Puesto";
+                var command = new SqlCommand(query, connection);
+                command.Parameters.AddWithValue("@Puesto", puesto);
+
+                await connection.OpenAsync();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        var usuario = new Usuario_Persona
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
+                            Apellido = reader.GetString(reader.GetOrdinal("Apellido")),
+                            UsuarioNombre = reader.GetString(reader.GetOrdinal("Usuario")),
+                            Contraseña = reader.GetString(reader.GetOrdinal("Contraseña")),
+                            Email = reader.GetString(reader.GetOrdinal("Email")),
+                            Puesto = reader.GetString(reader.GetOrdinal("Puesto")),
+                            DPI = reader.GetString(reader.GetOrdinal("DPI")),
+                            NumeroOficina = reader.GetInt32(reader.GetOrdinal("NumeroOficina"))
+                        };
+                        listaUsuarios.AgregarAlFinal(new Nodo(usuario));  // Asumiendo que tienes un método para agregar nodos
+                    }
+                }
+            }
+            return listaUsuarios;
+        }
+
         public async Task<ListaEnlazadaSimple> ObtenerTodosLosUsuarios()
         {
             var listaUsuarios = new ListaEnlazadaSimple();

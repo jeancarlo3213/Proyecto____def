@@ -62,7 +62,7 @@ namespace Proyecto____def.Estructura
         }
         public bool ListaVacia()
         {
-            return PrimerNodo == null; // Asumiendo que `primerNodo` es el primer elemento en tu lista enlazada
+            return PrimerNodo == null; 
         }
 
         public bool Eliminar(object informacion)

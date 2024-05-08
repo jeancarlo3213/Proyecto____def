@@ -1,0 +1,87 @@
+﻿@page "/Cliente/BuscarPorFiltroCliente/{IdCliente:int}"
+@using Proyecto____def.Estructura
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject SolicitudService solicitudService
+@inject NavigationManager NavigationManager
+
+<h3>Buscar Solicitudes por Filtro</h3>
+
+<select @onchange="OnEstadoChanged">
+    <option value="">Seleccione Estado</option>
+    <option value="Asignado">Asignado</option>
+    <option value="Reasignar">Reasignar</option>
+    <option value="En proceso">En proceso</option>
+    <option value="Completado">Completado</option>
+</select>
+
+<select @onchange="OnPrioridadChanged">
+    <option value="">Seleccione Prioridad</option>
+    <option value="Alta">Alta</option>
+    <option value="Media">Media</option>
+    <option value="Baja">Baja</option>
+</select>
+
+<button class="btn btn-primary" @onclick="BuscarSolicitudes">Buscar</button>
+
+@if (solicitudes != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID de Solicitud</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Fecha de Resolución</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Nodo nodo in solicitudes)
+            {
+                if (nodo.Informacion is Solicitud solicitud)
+                {
+                    <tr>
+                        <td>@solicitud.IdSolicitud</td>
+                        <td>@solicitud.DescripcionDetallada</td>
+                        <td>@solicitud.Estado</td>
+                        <td>@solicitud.Prioridad</td>
+                        <td>@(solicitud.FechaResolucion.HasValue ? solicitud.FechaResolucion.Value.ToString("yyyy-MM-dd") : "N/A")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No se encontraron solicitudes.</p>
+}
+
+@code {
+    [Parameter]
+    public int IdCliente { get; set; }
+    private ListaEnlazadaSimple solicitudes;
+    private string selectedEstado;
+    private string selectedPrioridad;
+
+    protected override async Task OnInitializedAsync()
+    {
+        solicitudes = await solicitudService.ObtenerSolicitudesPorUsuario(IdCliente);
+    }
+
+    private void OnEstadoChanged(ChangeEventArgs e)
+    {
+        selectedEstado = e.Value.ToString();
+    }
+
+    private void OnPrioridadChanged(ChangeEventArgs e)
+    {
+        selectedPrioridad = e.Value.ToString();
+    }
+
+    private async Task BuscarSolicitudes()
+    {
+        solicitudes = await solicitudService.ObtenerSolicitudesFiltradas(IdCliente, selectedEstado, selectedPrioridad);
+    }
+}

@@ -150,6 +150,7 @@ else
     private async Task HandleTecnicoSelected(int tecnicoId)
     {
         await solicitudService.AsignarTecnicoASolicitud(solicitudSeleccionada.IdSolicitud, tecnicoId);
+        await solicitudService.CalificarSolicitudComoNinguna(solicitudSeleccionada.IdSolicitud);
         await JS.InvokeAsync<object>("alert", $"Técnico asignado correctamente a la solicitud {solicitudSeleccionada.IdSolicitud}.");
         await ToggleSolicitudesEnEspera();
         mostrarSolicitudes = true;

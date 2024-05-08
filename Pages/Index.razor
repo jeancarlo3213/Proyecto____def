@@ -2,21 +2,28 @@
 
 <h1 class="text-center mt-5">Bienvenido</h1>
 
+
 @if (!mostrarOpciones)
 {
     <div class="text-center mt-3">
-        <button class="btn btn-primary btn-lg" @onclick="MostrarOpciones">Iniciar Sesión</button>
+
+        <center><button class="btn btn-secondary" @onclick="MostrarOpciones">Iniciar Sesión</button></center>
+
+
     </div>
 }
 else
 {
-    <div class="mt-3 text-center">
-        <button class="btn btn-secondary m-2" @onclick="IrAIniciarSesionCliente">Cliente</button>
-        <button class="btn btn-secondary m-2">este No</button>
-        <button class="btn btn-secondary m-2" @onclick="IrATecnico">Técnico</button>
-        <button class="btn btn-secondary m-2" @onclick="IrAJefe">Jefe</button>
-    </div>
+    <center>
+        <div class="btn-group" role="group">
+            <button class="btn btn-secondary m-2" @onclick="IrAIniciarSesionCliente">Cliente</button>
+            <button class="btn btn-secondary m-2" @onclick="IrATecnico">Técnico</button>
+            <button class="btn btn-secondary m-2" @onclick="IrAJefe">Jefe</button>
+        </div>
+    </center>
+
 }
+
 
 @code {
     [Inject]
