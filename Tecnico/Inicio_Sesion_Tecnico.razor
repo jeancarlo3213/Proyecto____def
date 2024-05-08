@@ -4,19 +4,19 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<h3 class="titulo">Iniciar Sesión como Técnico</h3>
+<h3 class="titulo">Inicio de Sesión Técnico</h3>
 
 <div class="form-group">
-    <label for="usuario">Usuario:</label>
+   <center> <label for="usuario">Usuario:</label></center>
     <input type="text" id="usuario" @bind="usuario" class="form-control" />
 </div>
 
 <div class="form-group">
-    <label for="contraseña">Contraseña:</label>
+  <center>  <label for="contraseña">Contraseña:</label></center>
     <input type="password" id="contraseña" @bind="contraseña" class="form-control" />
 </div>
 
-<button class="button" @onclick="IniciarSesion">Iniciar Sesión</button>
+<center><button class="button" @onclick="IniciarSesion">Iniciar Sesión</button></center>
 
 @code {
     private string usuario;

@@ -15,6 +15,7 @@
     <button class="btn toggle-solicitudes-btn" @onclick="ToggleVerSolicitudes">
         @(mostrarSolicitudes ? "Ocultar Mis Solicitudes" : "Ver Mis Solicitudes")
     </button>
+    <button class="btn buscar-filtro-btn" @onclick="BuscarPorFiltro">Buscar por Filtro</button>
 }
 
 @if (mostrarFormulario)
@@ -81,7 +82,7 @@
     {
         <p class="mensaje-confirmacion">@mensajeConfirmacion</p>
     }
-    }
+
 </div>
 @code {
     [Parameter]
@@ -107,18 +108,23 @@
         }
     }
 
-    private void ToggleVerSolicitudes()
+    private async void ToggleVerSolicitudes()
     {
         mostrarSolicitudes = !mostrarSolicitudes;
-        if (mostrarSolicitudes && listaSolicitudes.Count() == 0) // Asegúrate de cargar solicitudes si es necesario
+        if (mostrarSolicitudes)
         {
-            CargarSolicitudes();
+            await CargarSolicitudes();
+        }
+        else
+        {
+            StateHasChanged(); // Se asegura de que la UI se actualice correctamente
         }
     }
 
-    private async void CargarSolicitudes()
+    private async Task CargarSolicitudes()
     {
         listaSolicitudes = await solicitudService.ObtenerSolicitudesPorUsuario(usuario.Id);
+        StateHasChanged();
     }
 
     private void VerDetalleSolicitud(int idSolicitud)
@@ -207,4 +213,9 @@
     }
 
     private string NombreCompleto => usuario != null ? $"{usuario.Nombre} {usuario.Apellido}" : "Usuario Desconocido";
+
+    private void BuscarPorFiltro()
+    {
+        NavigationManager.NavigateTo($"/Cliente/BuscarPorFiltroCliente/{usuario.Id}");
+    }
 }
