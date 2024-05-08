@@ -1,0 +1,75 @@
+﻿@page "/Jefe/DetallesUsuario/{UsuarioId:int}"
+@using Proyecto____def.Clases_Objetos
+@using Proyecto____def.Servicios
+@inject UsuarioService usuarioService
+@inject NavigationManager NavigationManager
+
+<h3>Detalles del Usuario</h3>
+
+@if (usuario == null)
+{
+    <p><em>Cargando detalles...</em></p>
+}
+else
+{
+    <div class="card user-details-card">
+        <div class="card-body">
+            <h5 class="card-title">Detalles de Usuario</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>ID:</strong></label>
+                        <p class="user-info">@usuario.Id</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Nombre:</strong></label>
+                        <p class="user-info">@usuario.Nombre</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Apellido:</strong></label>
+                        <p class="user-info">@usuario.Apellido</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Usuario:</strong></label>
+                        <p class="user-info">@usuario.UsuarioNombre</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Email:</strong></label>
+                        <p class="user-info">@usuario.Email</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Puesto:</strong></label>
+                        <p class="user-info">@usuario.Puesto</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>DPI:</strong></label>
+                        <p class="user-info">@usuario.DPI</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Número de Oficina:</strong></label>
+                        <p class="user-info">@usuario.NumeroOficina</p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary" @onclick="NavigateBack">Volver</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int UsuarioId { get; set; }
+    private Usuario_Persona usuario;
+
+    protected override async Task OnInitializedAsync()
+    {
+        usuario = await usuarioService.ObtenerUsuarioPorId(UsuarioId);
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/Jefe/BuscarUsuario");
+    }
+}
