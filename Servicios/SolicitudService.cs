@@ -42,7 +42,7 @@ namespace Proyecto____def.Servicios
                                 NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
                                 DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
                                 Prioridad = reader.GetString(reader.GetOrdinal("Prioridad"))
-                                
+
                             };
                             solicitudes.AgregarAlFinal(solicitud);
                         }
@@ -51,7 +51,7 @@ namespace Proyecto____def.Servicios
             }
             return solicitudes;
         }
-        
+
         public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorTecnico(int idTecnico)
         {
             ListaEnlazadaSimple solicitudes = new ListaEnlazadaSimple();
@@ -90,6 +90,51 @@ namespace Proyecto____def.Servicios
             return solicitudes;
         }
 
+        public async Task<ListaEnlazadaSimple> ObtenerSolicitudesFiltradas(int idCliente, string estado, string prioridad)
+        {
+            ListaEnlazadaSimple solicitudesFiltradas = new ListaEnlazadaSimple();
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                // Construye la consulta SQL con condiciones dinámicas según los filtros proporcionados
+                var query = @"
+SELECT * FROM Solicitudes 
+WHERE IdCliente = @IdCliente
+AND (@Estado IS NULL OR Estado = @Estado)
+AND (@Prioridad IS NULL OR Prioridad = @Prioridad)
+ORDER BY FechaResolucion DESC";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@IdCliente", idCliente);
+                    command.Parameters.AddWithValue("@Estado", string.IsNullOrEmpty(estado) ? (object)DBNull.Value : estado);
+                    command.Parameters.AddWithValue("@Prioridad", string.IsNullOrEmpty(prioridad) ? (object)DBNull.Value : prioridad);
+
+                    await connection.OpenAsync();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            Solicitud solicitud = new Solicitud
+                            {
+                                IdSolicitud = reader.GetInt32(reader.GetOrdinal("IdSolicitud")),
+                                IdCliente = reader.GetInt32(reader.GetOrdinal("IdCliente")),
+                                IdOpcion = reader.GetInt32(reader.GetOrdinal("IdOpcion")),
+                                DescripcionProblema = reader.GetString(reader.GetOrdinal("DescripcionProblema")),
+                                Estado = reader.GetString(reader.GetOrdinal("Estado")),
+                                FechaCreacion = reader.GetDateTime(reader.GetOrdinal("FechaCreacion")),
+                                FechaUltimaActualizacion = reader.GetDateTime(reader.GetOrdinal("FechaUltimaActualizacion")),
+                                NombreCreador = reader.GetString(reader.GetOrdinal("NombreCreador")),
+                                DescripcionDetallada = reader.GetString(reader.GetOrdinal("DescripcionDetallada")),
+                                Prioridad = reader.GetString(reader.GetOrdinal("Prioridad")),
+                                FechaResolucion = reader.IsDBNull(reader.GetOrdinal("FechaResolucion")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("FechaResolucion"))
+                            };
+                            solicitudesFiltradas.AgregarAlFinal(solicitud);
+                        }
+                    }
+                }
+            }
+            return solicitudesFiltradas;
+        }
 
         public async Task<ListaEnlazadaSimple> ObtenerSolicitudesPorTecnicoYEstado(int idTecnico, string estado1, string estado2, string estado3)
         {
@@ -176,6 +221,32 @@ ORDER BY FechaCreacion DESC";
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+        public async Task ActualizarCalificacionSolicitud(Solicitud solicitud, string nuevaCalificacion, string nuevoEstado)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("UPDATE Solicitudes SET Calificacion = @Calificacion, Estado = @Estado WHERE IdSolicitud = @IdSolicitud", connection);
+                cmd.Parameters.AddWithValue("@Calificacion", nuevaCalificacion);
+                cmd.Parameters.AddWithValue("@Estado", nuevoEstado);
+                cmd.Parameters.AddWithValue("@IdSolicitud", solicitud.IdSolicitud);
+
+                await connection.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task CalificarSolicitudComoNinguna(int idSolicitud)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand("UPDATE Solicitudes SET Calificacion = 'Ninguna' WHERE IdSolicitud = @IdSolicitud", connection);
+                cmd.Parameters.AddWithValue("@IdSolicitud", idSolicitud);
+
+                await connection.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+
 
 
         public async Task<int> ObtenerTecnicoIdPorNombreUsuario(string nombreUsuario)
