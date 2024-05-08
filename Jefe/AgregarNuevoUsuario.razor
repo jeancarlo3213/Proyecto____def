@@ -8,20 +8,58 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <InputText id="nombre" @bind-Value="newUser.Nombre" placeholder="Nombre" class="form-control" />
-    <InputText id="apellido" @bind-Value="newUser.Apellido" placeholder="Apellido" class="form-control" />
-    <InputText id="usuarioNombre" @bind-Value="newUser.UsuarioNombre" placeholder="Nombre de Usuario" class="form-control" />
-    <InputText id="contraseña" @bind-Value="newUser.Contraseña" placeholder="Contraseña" type="password" class="form-control" />
-    <InputText id="email" @bind-Value="newUser.Email" placeholder="Email" class="form-control" />
-    <InputText id="dpi" @bind-Value="newUser.DPI" placeholder="DPI" class="form-control" />
-    <InputNumber id="numeroOficina" @bind-Value="newUser.NumeroOficina" placeholder="Número de Oficina" class="form-control" />
+    <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        <InputText id="nombre" @bind-Value="newUser.Nombre" placeholder="Nombre" class="form-control" />
+        <ValidationMessage For="@(() => newUser.Nombre)" />
+    </div>
 
-    <select @bind="newUser.Puesto" class="form-select">
-        <option value="">Seleccione el Puesto</option>
-        <option value="Tecnico">Técnico</option>
-        <option value="Jefe">Jefe</option>
-        <option value="Cliente">Cliente</option>
-    </select>
+    <div class="form-group">
+        <label for="apellido">Apellido:</label>
+        <InputText id="apellido" @bind-Value="newUser.Apellido" placeholder="Apellido" class="form-control" />
+        <ValidationMessage For="@(() => newUser.Apellido)" />
+    </div>
+
+    <div class="form-group">
+        <label for="usuarioNombre">Nombre de Usuario:</label>
+        <InputText id="usuarioNombre" @bind-Value="newUser.UsuarioNombre" placeholder="Nombre de Usuario" class="form-control" />
+        <ValidationMessage For="@(() => newUser.UsuarioNombre)" />
+    </div>
+
+    <div class="form-group">
+        <label for="contraseña">Contraseña:</label>
+        <InputText id="contraseña" @bind-Value="newUser.Contraseña" placeholder="Contraseña" type="password" class="form-control" />
+        <ValidationMessage For="@(() => newUser.Contraseña)" />
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <InputText id="email" @bind-Value="newUser.Email" placeholder="Email" class="form-control" />
+        <ValidationMessage For="@(() => newUser.Email)" />
+    </div>
+
+    <div class="form-group">
+        <label for="dpi">DPI:</label>
+        <InputText id="dpi" @bind-Value="newUser.DPI" placeholder="DPI" class="form-control" />
+        <ValidationMessage For="@(() => newUser.DPI)" />
+    </div>
+
+    <div class="form-group">
+        <label for="numeroOficina">Número de Oficina:</label>
+        <InputNumber id="numeroOficina" @bind-Value="newUser.NumeroOficina" placeholder="Número de Oficina" class="form-control" />
+        <ValidationMessage For="@(() => newUser.NumeroOficina)" />
+    </div>
+
+    <div class="form-group">
+        <label for="puesto">Puesto:</label>
+        <select @bind="newUser.Puesto" class="form-select">
+            <option value="">Seleccione el Puesto</option>
+            <option value="Tecnico">Técnico</option>
+            <option value="Jefe">Jefe</option>
+            <option value="Cliente">Cliente</option>
+        </select>
+        <ValidationMessage For="@(() => newUser.Puesto)" />
+    </div>
 
     <button type="submit" class="btn btn-success">Agregar Usuario</button>
 </EditForm>
@@ -37,15 +75,36 @@
 
     private async Task HandleValidSubmit()
     {
-        var result = await usuarioService.AgregarUsuarioConValidacion(newUser);
-        if (result)
+        try
         {
-            mensaje = $"Usuario agregado correctamente: {newUser.Nombre} {newUser.Apellido} - {newUser.Puesto}";
-            newUser = new Usuario_Persona(); // Reset the form
+            // Validar que todos los campos necesarios estén llenos
+            if (string.IsNullOrWhiteSpace(newUser.Nombre) ||
+                string.IsNullOrWhiteSpace(newUser.Apellido) ||
+                string.IsNullOrWhiteSpace(newUser.UsuarioNombre) ||
+                string.IsNullOrWhiteSpace(newUser.Contraseña) ||
+                string.IsNullOrWhiteSpace(newUser.Email) ||
+                string.IsNullOrWhiteSpace(newUser.DPI) ||
+                newUser.NumeroOficina <= 0 ||
+                string.IsNullOrWhiteSpace(newUser.Puesto))
+            {
+                mensaje = "Todos los campos son requeridos, por favor complete el formulario.";
+                return;
+            }
+
+            var result = await usuarioService.AgregarUsuarioConValidacion(newUser);
+            if (result)
+            {
+                mensaje = $"Usuario agregado correctamente: {newUser.Nombre} {newUser.Apellido} - {newUser.Puesto}";
+                newUser = new Usuario_Persona(); // Reset the form
+            }
+            else
+            {
+                mensaje = "No se pudo agregar el usuario. Ya existe un usuario con el mismo DPI y puesto, o faltan datos.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            mensaje = "No se pudo agregar el usuario. Ya existe un usuario con el mismo DPI y puesto, o faltan datos.";
+            mensaje = $"Error al agregar el usuario: {ex.Message}";
         }
     }
 }

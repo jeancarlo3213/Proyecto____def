@@ -15,7 +15,7 @@
     <button class="btn toggle-solicitudes-btn" @onclick="ToggleVerSolicitudes">
         @(mostrarSolicitudes ? "Ocultar Mis Solicitudes" : "Ver Mis Solicitudes")
     </button>
-    <button class="btn buscar-filtro-btn" @onclick="BuscarPorFiltro">Buscar por Filtro</button>
+    <button class="btn buscar-filtro-btn" @onclick="BuscarByFiltro">Buscar por Filtro</button>
 }
 
 @if (mostrarFormulario)
@@ -82,8 +82,21 @@
     {
         <p class="mensaje-confirmacion">@mensajeConfirmacion</p>
     }
-
 </div>
+
+@if (solicitudRecienCreada != null)
+{
+    <div class="solicitud-recien-creada">
+        <h4>Detalles de la Solicitud Creada</h4>
+        <p><strong>ID:</strong> @solicitudRecienCreada.IdSolicitud</p>
+        <p><strong>Descripción Detallada:</strong> @solicitudRecienCreada.DescripcionDetallada</p>
+        <p><strong>Prioridad:</strong> @solicitudRecienCreada.Prioridad</p>
+        <p><strong>Estado:</strong> @solicitudRecienCreada.Estado</p>
+        <p><strong>Fecha de Creación:</strong> @solicitudRecienCreada.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
+        <button class="btn btn-info" @onclick="() => VerDetalleSolicitud(solicitudRecienCreada.IdSolicitud)">Ver Detalles</button>
+    </div>
+}
+
 @code {
     [Parameter]
     public string NombreUsuario { get; set; }
@@ -98,6 +111,7 @@
     private string descripcionDetallada;
     private string prioridadSeleccionada = "";
     private string mensajeConfirmacion;
+    private Solicitud solicitudRecienCreada;  // To store the recently created request
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,7 +131,7 @@
         }
         else
         {
-            StateHasChanged(); // Se asegura de que la UI se actualice correctamente
+            StateHasChanged(); // Ensure the UI updates correctly
         }
     }
 
@@ -172,50 +186,49 @@
         if (opcionSeleccionada != null && !string.IsNullOrWhiteSpace(descripcionDetallada) && !string.IsNullOrWhiteSpace(prioridadSeleccionada))
         {
             Solicitud nuevaSolicitud = new Solicitud
-                {
-                    IdCliente = usuario.Id,
-                    IdOpcion = opcionSeleccionada.IdOpcion,
-                    DescripcionProblema = opcionSeleccionada.Descripcion,
-                    Estado = "En espera",
-                    FechaCreacion = DateTime.Now,
-                    FechaUltimaActualizacion = DateTime.Now,
-                    NombreCreador = NombreCompleto,
-                    DescripcionDetallada = descripcionDetallada,
-                    Prioridad = prioridadSeleccionada,
-                };
+            {
+                IdCliente = usuario.Id,
+                IdOpcion = opcionSeleccionada.IdOpcion,
+                DescripcionProblema = opcionSeleccionada.Descripcion,
+                Estado = "En espera",
+                FechaCreacion = DateTime.Now,
+                FechaUltimaActualizacion = DateTime.Now,
+                NombreCreador = NombreCompleto,
+                DescripcionDetallada = descripcionDetallada,
+                Prioridad = prioridadSeleccionada,
+            };
             try
             {
                 int idSolicitudGenerada = await solicitudService.AgregarSolicitudAsync(nuevaSolicitud);
                 nuevaSolicitud.IdSolicitud = idSolicitudGenerada;
-                mensajeConfirmacion = "Solicitud agregada correctamente. ID de Solicitud: " + idSolicitudGenerada;
+                solicitudRecienCreada = nuevaSolicitud;
+                mensajeConfirmacion = $"Solicitud #{idSolicitudGenerada} creada exitosamente.";
                 ResetForm();
             }
             catch (Exception ex)
             {
-                mensajeConfirmacion = $"Error al agregar solicitud: {ex.Message}";
+                mensajeConfirmacion = $"Error al crear la solicitud: {ex.Message}";
             }
+            StateHasChanged();
         }
         else
         {
-            mensajeConfirmacion = "Por favor complete todos los campos requeridos para la solicitud.";
+            mensajeConfirmacion = "Complete todos los campos para confirmar la solicitud.";
+            StateHasChanged();
         }
     }
 
     private void ResetForm()
     {
+        opcionSeleccionada = null;
         descripcionDetallada = "";
         prioridadSeleccionada = "";
-        opcionSeleccionada = null;
-        mensajeConfirmacion = null;
-        mostrarAgregarOpcion = false;
-        mostrarFormulario = false;
-        StateHasChanged();
     }
 
     private string NombreCompleto => usuario != null ? $"{usuario.Nombre} {usuario.Apellido}" : "Usuario Desconocido";
 
-   private void BuscarPorFiltro()
+    private void BuscarByFiltro()
     {
         NavigationManager.NavigateTo($"/Cliente/BuscarPorFiltroCliente/{usuario.Id}");
-    } 
+    }
 }

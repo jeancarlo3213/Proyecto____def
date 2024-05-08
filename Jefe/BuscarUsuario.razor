@@ -16,7 +16,6 @@
         <option value="nombre">Buscar por Nombre</option>
         <option value="dpi">Buscar por DPI</option>
         <option value="oficina">Buscar por Número de Oficina</option>
-        <option value="puesto">Buscar por Puesto</option>
         <option value="todos">Mostrar Todos los Usuarios</option>
     </select>
 
@@ -26,23 +25,28 @@
             @switch (currentFilter)
             {
                 case "id":
-                    <InputNumber @bind-Value="searchModel.Id" placeholder="Ingrese ID" />
+                    <div class="form-group">
+                        <label for="id">ID:</label>
+                        <InputNumber id="id" @bind-Value="searchModel.Id" placeholder="Ingrese ID" class="form-control" />
+                    </div>
                     break;
                 case "nombre":
-                    <InputText @bind-Value="searchModel.Nombre" placeholder="Ingrese Nombre" />
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <InputText id="nombre" @bind-Value="searchModel.Nombre" placeholder="Ingrese Nombre" class="form-control" />
+                    </div>
                     break;
                 case "dpi":
-                    <InputText @bind-Value="searchModel.DPI" placeholder="Ingrese DPI" />
+                    <div class="form-group">
+                        <label for="dpi">DPI:</label>
+                        <InputText id="dpi" @bind-Value="searchModel.DPI" placeholder="Ingrese DPI" class="form-control" />
+                    </div>
                     break;
                 case "oficina":
-                    <InputNumber @bind-Value="searchModel.NumeroOficina" placeholder="Ingrese Número de Oficina" />
-                    break;
-                case "puesto":
-                    <select @bind="searchModel.Puesto">
-                        <option value="Cliente">Cliente</option>
-                        <option value="Jefe">Jefe</option>
-                        <option value="Técnico">Técnico</option>
-                    </select>
+                    <div class="form-group">
+                        <label for="oficina">Número de Oficina:</label>
+                        <InputNumber id="oficina" @bind-Value="searchModel.NumeroOficina" placeholder="Ingrese Número de Oficina" class="form-control" />
+                    </div>
                     break;
             }
             <button type="submit" class="btn btn-secondary">Buscar</button>
@@ -50,9 +54,9 @@
     }
 }
 
-@if (resultadosBusqueda != null)
+@if (resultadosBusqueda != null && !resultadosBusqueda.ListaVacia())
 {
-    <table class="table">
+    <table class="table table-striped mt-3">
         <thead>
             <tr>
                 <th>ID</th>
@@ -73,7 +77,7 @@
                 {
                     <tr>
                         <td>@usuario.Id</td>
-                        <td>@usuario.Nombre</td
+                        <td>@usuario.Nombre</td>
                         <td>@usuario.Apellido</td>
                         <td>@usuario.UsuarioNombre</td>
                         <td>@usuario.Email</td>
@@ -87,44 +91,68 @@
         </tbody>
     </table>
 }
-else
+else if (resultadosBusqueda != null && resultadosBusqueda.ListaVacia())
 {
-    <p>No se encontraron usuarios.</p>
+    <div class="alert alert-warning mt-3">No se encontraron usuarios.</div>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
 }
 
 @code {
     private SearchModel searchModel = new SearchModel();
-    private ListaEnlazadaSimple resultadosBusqueda = new ListaEnlazadaSimple();
+    private ListaEnlazadaSimple resultadosBusqueda;
     private bool showFilters = false;
     private string currentFilter = "";
+    private string errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios() ?? new ListaEnlazadaSimple();
+        try
+        {
+            resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios() ?? new ListaEnlazadaSimple();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar los datos: {ex.Message}";
+        }
     }
 
     private async Task HandleSearch()
     {
-        switch (currentFilter)
+        try
         {
-            case "id":
-                resultadosBusqueda = await usuarioService.BuscarPorId(searchModel.Id.Value);
-                break;
-            case "nombre":
-                resultadosBusqueda = await usuarioService.BuscarPorNombre(searchModel.Nombre);
-                break;
-            case "dpi":
-                resultadosBusqueda = await usuarioService.BuscarPorDPI(searchModel.DPI);
-                break;
-            case "oficina":
-                resultadosBusqueda = await usuarioService.BuscarPorNumeroOficina(searchModel.NumeroOficina.Value);
-                break;
-            case "puesto":
-                resultadosBusqueda = await usuarioService.BuscarPorPuesto(searchModel.Puesto);
-                break;
-            case "todos":
-                resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios();
-                break;
+            switch (currentFilter)
+            {
+                case "id":
+                    resultadosBusqueda = await usuarioService.BuscarPorId(searchModel.Id.Value);
+                    break;
+                case "nombre":
+                    resultadosBusqueda = await usuarioService.BuscarPorNombre(searchModel.Nombre);
+                    break;
+                case "dpi":
+                    resultadosBusqueda = await usuarioService.BuscarPorDPI(searchModel.DPI);
+                    break;
+                case "oficina":
+                    resultadosBusqueda = await usuarioService.BuscarPorNumeroOficina(searchModel.NumeroOficina.Value);
+                    break;
+                case "todos":
+                    resultadosBusqueda = await usuarioService.ObtenerTodosLosUsuarios();
+                    break;
+            }
+            if (resultadosBusqueda == null || resultadosBusqueda.ListaVacia())
+            {
+                errorMessage = "No se encontraron resultados.";
+            }
+            else
+            {
+                errorMessage = string.Empty; // Clear any previous errors
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al buscar usuarios: {ex.Message}";
         }
         StateHasChanged();
     }
